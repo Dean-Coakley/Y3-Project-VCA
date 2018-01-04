@@ -6,17 +6,32 @@ const urlencodedParser = bodyParser.urlencoded({ extended: false });
 const axios = require("axios");
 let router = express.Router();
 
+
+function getPatients() {
+    const ref = firebase.database().ref("patients_flattened/");
+    return ref.once("value").then(snap => snap.val());
+}
+
 /* GET geofence page. */
 router.get("/", (req, res, next) => {
     let data = url.parse(req.url, true).query;
     let hrefQuery = "?uid="+ data.uid;
-    
-    res.render("geofence", {title: "Add a Geofence", userQuery: hrefQuery});
+
+    let patient_objs = {};
+    getPatients().then(patients => {
+        for (patient in patients){
+            if (patients[patient].carerID === data.uid){
+                patient_objs[patient] = patients[patient];
+            }
+        }
+    }).then(() => {
+        res.render("geofence", {title: "Add a Geofence", userQuery: hrefQuery, patients: patient_objs, carerId: data.uid});
+    });
 });
 
 router.post("/add", urlencodedParser, (req, res) => {
     let data = url.parse(req.url, true).query;
-    let hrefQuery = "?uid="+ data.uid;
+    let carerId = req.body.carerId;
 
     let addr_input = req.body.address + " , Ireland";
     console.log(req.body);
@@ -41,14 +56,17 @@ router.post("/add", urlencodedParser, (req, res) => {
             long_ref.set(long);
             let lat_ref = firebase.database().ref("patients_flattened/" + patient_uid + "/geofenceLat");
             lat_ref.set(lat);
+            let radius_ref = firebase.database().ref("patients_flattened/" + patient_uid + "/geofenceRadius");
+            radius_ref.set(0.001);
         }
     })
     .then(()=> {
-        res.render(home, {title: "Add a Geofence", userQuery: hrefQuery});
+        let redir_url = "/home?uid=" + carerId;
+        res.redirect(redir_url);
     })
     .catch((error) => {
-        console.log(error);
-        res.render("geofence", {title: "Add a Geofence", userQuery: hrefQuery});
+        let redir_url = "/home?uid=" + carerId;
+        res.redirect(redir_url);
     });
 });
 
