@@ -55,7 +55,6 @@ router.get("/", (req, res, next) => {
                         patients[patient].isOutsideGeofence = false;
                     }
                 }
-
                 patient_objs[patient] = patients[patient];
             }
         }

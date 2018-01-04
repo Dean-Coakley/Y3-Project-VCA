@@ -18,6 +18,8 @@ block content
                     div.form-group
                         label(for='patient') Patient
                         select.form-control(name='patient_uid' id='patient')
-                            option(value='xM6hF7cZzHMY2jK4A6BXFcdBNY12') Alex O Regan
+                            for patient, patientId in patients
+                                option(value=patientId) #{patient.fname} #{patient.lname}
 
+                    input(type="hidden" name="carerId" value=carerId)
                     input.btn.btn-info(type='submit' id='submit')
